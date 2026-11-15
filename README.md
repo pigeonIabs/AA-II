@@ -19,10 +19,10 @@ Selections are saved locally. Closing the last app tab stops the local server.
 
 Data and provider branding come from Artificial Analysis. Only published, non-estimated Intelligence Index scores are included. Models with an explicitly zero total evaluation cost are excluded. Third-party notices are included in `LICENSES.txt`.
 
-![Intelligence Index in dark mode](images/index-dark.png)
+![Stacked reasoning efforts in dark mode](images/index-dark-2bbd1b6cfa80.png)
 
-![Intelligence Index in light mode](images/index-light.png)
+![Stacked reasoning efforts in light mode](images/index-light-837a8a09b123.png)
 
-![Pareto frontier](images/pareto.png)
+![Pareto frontier](images/pareto-eebe564c1f18.png)
 
-![Distance to perfection](images/distance.png)
+![Distance to perfection](images/distance-ccad762c64a3.png)
