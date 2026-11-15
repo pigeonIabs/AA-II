@@ -1,0 +1,45 @@
+/* Shared theme tokens. Component fallbacks preserve the original dark palette.
+   Provider colors and reasoning shades remain tied to the source snapshot. */
+:root {
+  color-scheme: dark;
+  --page: #000;
+  --muted: #82857f;
+  --line: #242622;
+  --accent: #d0f3a7;
+  --brand-filter: brightness(0) invert(1);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --page: #f7f8f4;
+  --muted: #626d59;
+  --line: #d6ddce;
+  --accent: #46672f;
+  --accent-hover: #345122;
+  --on-accent: #fff;
+  --text-primary: #20271c;
+  --text-secondary: #46513d;
+  --text-muted: #626d59;
+  --text-subtle: #697460;
+  --text-accent: #46672f;
+  --surface-control: #f0f3ea;
+  --surface-raised: #fff;
+  --surface-hover: #e7eddf;
+  --surface-selected: #eaf0e2;
+  --line-subtle: #e0e5d9;
+  --line-strong: #b7c2ab;
+  --control-border: #a7b59a;
+  --scrollbar: #adb99f;
+  --range-track: #bdc9af;
+  --range-thumb-border: #345122;
+  --chart-grid: #dbe2d3;
+  --chart-axis: #88977a;
+  --chart-highlight: #314f21;
+  --chart-outline: #75816a;
+  --error-text: #884821;
+  --error-border: #d1ac8d;
+  --error-surface: #fff3e8;
+  --shadow: #28331a24;
+  --backdrop: #27301d52;
+  --brand-filter: none;
+}

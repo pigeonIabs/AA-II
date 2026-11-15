@@ -19,6 +19,8 @@ Selections are saved locally. Closing the last app tab stops the local server.
 
 Data and provider branding come from Artificial Analysis. Only published, non-estimated Intelligence Index scores are included. Models with an explicitly zero total evaluation cost are excluded. Third-party notices are included in `LICENSES.txt`.
 
+Original application code is [AGPLv3](LICENSE). [Source and build instructions](source/BUILD.md) are included. AA data and branding are excluded from this license. Their redistribution remains subject to AA permissions and terms. See [NOTICE](NOTICE).
+
 ![Stacked reasoning efforts in dark mode](images/index-dark-2bbd1b6cfa80.png)
 
 ![Stacked reasoning efforts in light mode](images/index-light-837a8a09b123.png)

@@ -1,3 +1,8 @@
 Intelligence Index/data/model-selection.json
 Intelligence Index/data/server.key
 *.log
+source/target/
+source/data/
+source/public/
+source/desktop/
+source/Intelligence Index.exe

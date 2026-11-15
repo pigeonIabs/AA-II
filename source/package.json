@@ -1,0 +1,14 @@
+{
+  "name": "aa-intelligence-local",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "\"Intelligence Index.exe\"",
+    "build": "cargo run --locked --release -p xtask -- build",
+    "refresh": "cargo run --locked --release -p index-native -- --root . --refresh-only",
+    "refresh:parameters": "cargo run --locked --release -p index-native -- --root . --enrich-parameters"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

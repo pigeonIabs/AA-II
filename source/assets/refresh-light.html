@@ -1,0 +1,247 @@
+<style>
+@property --bw1-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bh1-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bw2-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bh2-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bw3-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bh3-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bgh-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bop-tl-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bop-tr-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bop-bl-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bop-br-ii-refresh {
+  syntax: "<number>";
+  initial-value: 1;
+  inherits: true;
+}
+
+@property --bx1-ii-refresh {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+@property --by1-ii-refresh {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+@property --bx2-ii-refresh {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+@property --by2-ii-refresh {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+@property --bx3-ii-refresh {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+@property --by3-ii-refresh {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+@property --beam-opacity-ii-refresh {
+  syntax: "<number>";
+  initial-value: 0;
+  inherits: true;
+}
+
+@property --beam-hue-ii-refresh {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: true;
+}
+
+[data-beam="ii-refresh"] {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+[data-beam="ii-refresh"][data-active] {
+  animation: beam-fade-in-ii-refresh 0.6s ease forwards;
+}
+
+[data-beam="ii-refresh"][data-fading] {
+  animation: beam-fade-out-ii-refresh 0.5s ease forwards;
+}
+
+[data-beam="ii-refresh"][data-active]::after,
+[data-beam="ii-refresh"][data-fading]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  clip-path: inset(0 round 16px);
+  background: radial-gradient(ellipse calc(70px * var(--bw1-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(40px * var(--bh1-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(33% + var(--bx1-ii-refresh)) calc(-7.4% + var(--by1-ii-refresh)), rgba(180, 180, 180, var(--bop-tl-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(60px * var(--bw2-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(35px * var(--bh2-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(12% + var(--bx2-ii-refresh)) calc(-5% + var(--by2-ii-refresh)), rgba(140, 140, 140, var(--bop-tl-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(40px * var(--bw3-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(70px * var(--bh3-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(2.1% + var(--bx3-ii-refresh)) calc(68.3% + var(--by3-ii-refresh)), rgba(160, 160, 160, var(--bop-bl-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(20px * var(--bw1-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(35px * var(--bh1-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(2.1% + var(--bx1-ii-refresh)) calc(68.3% + var(--by1-ii-refresh)), rgba(130, 130, 130, var(--bop-bl-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(180px * var(--bw2-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(32px * var(--bh2-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(74.4% + var(--bx2-ii-refresh)) calc(100% + var(--by2-ii-refresh)), rgba(170, 170, 170, var(--bop-br-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(85px * var(--bw3-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(26px * var(--bh3-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(55% + var(--bx3-ii-refresh)) calc(100% + var(--by3-ii-refresh)), rgba(150, 150, 150, var(--bop-br-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(74px * var(--bw1-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(32px * var(--bh1-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(93.9% + var(--bx1-ii-refresh)) calc(0% + var(--by1-ii-refresh)), rgba(190, 190, 190, var(--bop-tr-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(26px * var(--bw2-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(42px * var(--bh2-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(100% + var(--bx2-ii-refresh)) calc(27.1% + var(--by2-ii-refresh)), rgba(145, 145, 145, var(--bop-tr-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(52px * var(--bw3-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(48px * var(--bh3-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(100% + var(--bx3-ii-refresh)) calc(27.1% + var(--by3-ii-refresh)), rgba(165, 165, 165, var(--bop-tr-ii-refresh)), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+  will-change: opacity, filter;
+  opacity: calc(var(--beam-opacity-ii-refresh) * 0.16 * var(--beam-stroke-opacity, 1) * var(--beam-strength, 1));
+  filter: brightness(1.30) saturate(0.75);
+}
+
+[data-beam="ii-refresh"][data-active]::before,
+[data-beam="ii-refresh"][data-fading]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  clip-path: inset(0 round 16px);
+  background: radial-gradient(ellipse calc(65px * var(--bw1-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(35px * var(--bh1-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(33% + var(--bx1-ii-refresh)) calc(-7.4% + var(--by1-ii-refresh)), rgba(180, 180, 180, var(--bop-tl-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(55px * var(--bw2-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(30px * var(--bh2-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(12% + var(--bx2-ii-refresh)) calc(-5% + var(--by2-ii-refresh)), rgba(140, 140, 140, var(--bop-tl-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(35px * var(--bw3-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(65px * var(--bh3-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(2.1% + var(--bx3-ii-refresh)) calc(68.3% + var(--by3-ii-refresh)), rgba(160, 160, 160, var(--bop-bl-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(15px * var(--bw1-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(30px * var(--bh1-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(2.1% + var(--bx1-ii-refresh)) calc(68.3% + var(--by1-ii-refresh)), rgba(130, 130, 130, var(--bop-bl-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(173px * var(--bw2-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(28px * var(--bh2-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(74.4% + var(--bx2-ii-refresh)) calc(100% + var(--by2-ii-refresh)), rgba(170, 170, 170, var(--bop-br-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(80px * var(--bw3-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(22px * var(--bh3-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(55% + var(--bx3-ii-refresh)) calc(100% + var(--by3-ii-refresh)), rgba(150, 150, 150, var(--bop-br-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(69px * var(--bw1-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(28px * var(--bh1-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(93.9% + var(--bx1-ii-refresh)) calc(0% + var(--by1-ii-refresh)), rgba(190, 190, 190, var(--bop-tr-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(22px * var(--bw2-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(38px * var(--bh2-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(100% + var(--bx2-ii-refresh)) calc(27.1% + var(--by2-ii-refresh)), rgba(145, 145, 145, var(--bop-tr-ii-refresh)), transparent),
+    radial-gradient(ellipse calc(47px * var(--bw3-ii-refresh) * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(44px * var(--bh3-ii-refresh) * var(--bgh-ii-refresh) * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at calc(100% + var(--bx3-ii-refresh)) calc(27.1% + var(--by3-ii-refresh)), rgba(165, 165, 165, var(--bop-tr-ii-refresh)), transparent),
+    radial-gradient(ellipse 60px 60px at 0% 0%, rgba(0, 0, 0, calc(0.08 * var(--bop-tl-ii-refresh))), transparent 70%),
+    radial-gradient(ellipse 60px 60px at 100% 0%, rgba(0, 0, 0, calc(0.08 * var(--bop-tr-ii-refresh))), transparent 70%),
+    radial-gradient(ellipse 60px 60px at 0% 100%, rgba(0, 0, 0, calc(0.08 * var(--bop-bl-ii-refresh))), transparent 70%),
+    radial-gradient(ellipse 60px 60px at 100% 100%, rgba(0, 0, 0, calc(0.08 * var(--bop-br-ii-refresh))), transparent 70%);
+  -webkit-mask-image:
+    linear-gradient(white, transparent 28px, transparent calc(100% - 28px), white),
+    linear-gradient(to right, white, transparent 28px, transparent calc(100% - 28px), white);
+  -webkit-mask-composite: source-over;
+  mask-image:
+    linear-gradient(white, transparent 28px, transparent calc(100% - 28px), white),
+    linear-gradient(to right, white, transparent 28px, transparent calc(100% - 28px), white);
+  mask-composite: add;
+  pointer-events: none;
+  z-index: 1;
+  will-change: opacity, filter;
+  opacity: calc(var(--beam-opacity-ii-refresh) * 0.20 * var(--beam-inner-opacity, 1) * var(--beam-strength, 1));
+  filter: brightness(1.30) saturate(0.75);
+}
+
+[data-beam="ii-refresh"] [data-beam-bloom] {
+  display: none;
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  clip-path: inset(0 round 16px);
+  background: radial-gradient(ellipse calc(84px * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(48px * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at 33% -7.4%, rgba(180, 180, 180, 0.775), transparent),
+    radial-gradient(ellipse calc(72px * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(42px * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at 12% -5%, rgba(140, 140, 140, 0.775), transparent),
+    radial-gradient(ellipse calc(48px * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(84px * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at 2.1% 68.3%, rgba(160, 160, 160, 0.775), transparent),
+    radial-gradient(ellipse calc(216px * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(38px * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at 74.4% 100%, rgba(170, 170, 170, 0.775), transparent),
+    radial-gradient(ellipse calc(102px * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(31px * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at 55% 100%, rgba(150, 150, 150, 0.775), transparent),
+    radial-gradient(ellipse calc(89px * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(38px * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at 93.9% 0%, rgba(190, 190, 190, 0.775), transparent),
+    radial-gradient(ellipse calc(62px * var(--pulse-glow-sx, 1) * var(--pulse-glow-boost, 1)) calc(58px * var(--pulse-glow-sy, 1) * var(--pulse-glow-boost, 1)) at 100% 27.1%, rgba(165, 165, 165, 0.775), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  padding: 1px;
+  pointer-events: none;
+  z-index: 3;
+  will-change: opacity;
+  opacity: 0;
+}
+
+[data-beam="ii-refresh"][data-active] [data-beam-bloom],
+[data-beam="ii-refresh"][data-fading] [data-beam-bloom] {
+  display: block;
+  opacity: calc(var(--beam-opacity-ii-refresh) * 0.40 * var(--beam-bloom-opacity, 1) * var(--beam-strength, 1));
+  filter: blur(8px) brightness(1.30) saturate(0.75);
+}
+
+@keyframes beam-fade-in-ii-refresh { to { --beam-opacity-ii-refresh: 1; } }
+@keyframes beam-fade-out-ii-refresh { from { --beam-opacity-ii-refresh: 1; } to { --beam-opacity-ii-refresh: 0; } }
+
+[data-beam="ii-refresh"][data-paused],
+[data-beam="ii-refresh"][data-paused]::after,
+[data-beam="ii-refresh"][data-paused]::before,
+[data-beam="ii-refresh"][data-paused] [data-beam-bloom] {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-beam="ii-refresh"][data-active],
+  [data-beam="ii-refresh"][data-fading],
+  [data-beam="ii-refresh"][data-active]::after,
+  [data-beam="ii-refresh"][data-fading]::after,
+  [data-beam="ii-refresh"][data-active]::before,
+  [data-beam="ii-refresh"][data-fading]::before,
+  [data-beam="ii-refresh"][data-active] [data-beam-bloom],
+  [data-beam="ii-refresh"][data-fading] [data-beam-bloom] {
+    animation: none !important;
+  }
+}
+</style><div data-beam="ii-refresh" class="refresh-border" style="display:flex;border-radius:3px;overflow:visible;--beam-strength:0.7">{{CONTENT}}<div data-beam-bloom="true"></div></div>

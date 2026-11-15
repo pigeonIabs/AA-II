@@ -1,0 +1,22 @@
+AA-II
+Copyright (C) 2026 pigeonIabs
+
+The original application code is licensed under the GNU Affero General Public
+License, version 3 only (AGPL-3.0-only). See LICENSE for the complete terms.
+This program is distributed without any warranty.
+
+Corresponding source and build instructions
+https://github.com/pigeonIabs/AA-II
+The source folder contains the Rust application, WebAssembly interface, build
+workflow, and authored assets. Each release provides a matching source archive.
+
+Third-party materials
+Artificial Analysis data, model metadata, provider names, logos, and branding
+are not relicensed under AGPLv3. They remain subject to their owners' rights
+and applicable terms. No permission from or endorsement by Artificial Analysis
+is claimed. AGPLv3 does not grant permission to scrape or redistribute AA data.
+https://artificialanalysis.ai/terms-of-use
+https://artificialanalysiscdn.com/legal/ProDataPlatformTerms.pdf
+
+Third-party libraries, fonts, icons, and other separately licensed components
+retain their respective licenses and notices, included in LICENSES.txt.

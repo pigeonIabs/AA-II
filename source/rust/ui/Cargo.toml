@@ -1,0 +1,16 @@
+[package]
+name = "index-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+index-core.workspace = true
+serde_json.workspace = true
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["Window", "Location", "StorageEvent", "Document", "Element", "HtmlElement", "HtmlInputElement", "HtmlSelectElement", "HtmlDialogElement", "HtmlAnchorElement", "HtmlCanvasElement", "HtmlImageElement", "HtmlTextAreaElement", "HtmlLinkElement", "CanvasRenderingContext2d", "TextMetrics", "ImageData", "Node", "NodeList", "DomRect", "DomTokenList", "CssStyleDeclaration", "Event", "EventTarget", "MouseEvent", "PointerEvent", "KeyboardEvent", "WheelEvent", "InputEvent", "FocusEvent", "Storage", "Navigator", "Clipboard", "ClipboardItem", "ClipboardItemOptions", "Blob", "BlobPropertyBag", "Url", "Request", "RequestInit", "RequestMode", "Response", "Headers", "WebSocket", "MessageEvent", "CloseEvent", "ErrorEvent", "Performance", "XmlSerializer", "ResizeObserver", "ResizeObserverEntry", "AbortController", "AbortSignal", "FontFaceSet", "FileReader", "ScrollToOptions", "ScrollBehavior", "console"] }
