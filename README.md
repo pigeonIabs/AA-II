@@ -6,7 +6,7 @@ A custom UI for the [Artificial Analysis Intelligence Index](https://artificiala
 
 Extract the ZIP and open `Intelligence Index.exe` inside the `Intelligence Index` folder. Keep the folder together. No installation or extra runtime is needed.
 
-Click **Refresh data** to fetch and update the data automatically. Refreshing needs an internet connection. The saved dataset works offline.
+Click **Refresh data** to fetch and update the data automatically. The importer automatically recovers from supported source structure changes and preserves the last valid snapshot if recovery is not possible. Refreshing needs an internet connection. The saved dataset works offline.
 
 - Choose models and reasoning efforts, or use a temporary comparison.
 - Filter by provider, weights, reasoning, modality, status, and minimum score.

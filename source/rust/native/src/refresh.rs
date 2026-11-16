@@ -19,10 +19,12 @@ use std::{
 
 const ORIGIN: &str = "https://artificialanalysis.ai";
 fn page(html: &str) -> Vec<Value> {
-    let pattern = Regex::new(r"(?s)self\.__next_f\.push\((\[.*?\])\)</script>").unwrap();
+    let pattern = Regex::new(r"self\s*\.\s*__next_f\s*\.\s*push\s*\(").unwrap();
     let mut stream = String::new();
-    for capture in pattern.captures_iter(html) {
-        if let Ok(chunk) = serde_json::from_str::<Value>(&capture[1]) {
+    for capture in pattern.find_iter(html) {
+        let mut decoder =
+            serde_json::Deserializer::from_str(&html[capture.end()..]).into_iter::<Value>();
+        if let Some(Ok(chunk)) = decoder.next() {
             if let Some(text) = chunk[1].as_str() {
                 stream.push_str(text);
             }
@@ -52,116 +54,126 @@ fn find_arrays<'a>(node: &'a Value, key: &str, out: &mut Vec<&'a Value>) {
     }
 }
 fn page_models(remote: &Remote, records: &[Value]) -> Result<Vec<Value>> {
-    fn walk<'a>(
-        node: &'a Value,
-        inherited: Option<&'a Value>,
-        collections: &mut Vec<(&'a Value, Option<&'a Value>)>,
-    ) {
+    // Discover by schema, not component names, CSS, nesting, or a manifest's position.
+    fn walk(node: &Value, manifests: &mut Vec<Value>, collections: &mut Vec<Vec<Value>>) {
         match node {
             Value::Object(map) => {
-                let manifest = node.get("manifest").or(inherited);
-                for key in ["models", "initialModels"] {
-                    if array(&node[key])
-                        .iter()
-                        .any(|m| m["slug"].is_string() && m.get("intelligenceIndex").is_some())
-                    {
-                        collections.push((&node[key], manifest));
+                if s(node, "path").starts_with("/data/") && node.get("key").is_some() {
+                    if !manifests.contains(node) {
+                        manifests.push(node.clone());
                     }
                 }
                 for child in map.values() {
-                    walk(child, manifest, collections);
+                    walk(child, manifests, collections);
                 }
             }
             Value::Array(values) => {
-                for value in values {
-                    walk(value, inherited, collections)
+                if !values.is_empty()
+                    && values
+                        .iter()
+                        .all(|m| m["id"].is_string() && m.get("intelligenceIndex").is_some())
+                {
+                    collections.push(values.clone());
+                }
+                for child in values {
+                    walk(child, manifests, collections);
                 }
             }
             _ => {}
         }
     }
+    let mut manifests = Vec::new();
     let mut collections = Vec::new();
     for record in records {
-        walk(record, None, &mut collections);
+        walk(record, &mut manifests, &mut collections);
     }
-    collections.sort_by(|a, b| {
-        b.1.is_some()
-            .cmp(&a.1.is_some())
-            .then(array(b.0).len().cmp(&array(a.0).len()))
-    });
-    let Some((models, manifest)) = collections.first() else {
-        bail!("The public page format changed. The previous snapshot is preserved.")
-    };
-    let mut payload = if let Some(manifest) = manifest {
-        let url = url::Url::parse(ORIGIN)?.join(s(manifest, "path"))?;
-        if url.origin().ascii_serialization() != ORIGIN
-            || !url.path().starts_with("/data/")
-            || !url.username().is_empty()
-            || url.password().is_some()
-        {
-            bail!("The public model data location changed. The previous snapshot is preserved.");
-        }
-        if !s(manifest, "key").is_empty() {
-            let key = hex::decode(s(manifest, "key"))
-                .map_err(|_| anyhow!("The public model data key changed."))?;
-            if key.len() != 32 {
-                bail!("The public model data key changed.");
+    let mut last_error = None;
+    for manifest in manifests {
+        let decoded = (|| -> Result<Value> {
+            let url = url::Url::parse(ORIGIN)?.join(s(&manifest, "path"))?;
+            if url.origin().ascii_serialization() != ORIGIN
+                || !url.path().starts_with("/data/")
+                || !url.username().is_empty()
+                || url.password().is_some()
+            {
+                bail!(
+                    "The public model data location changed. The previous snapshot is preserved."
+                );
             }
-            let iv = Sha256::digest(&key);
-            let encrypted = remote.bytes(url.as_str(), 64 * 1024 * 1024, 45, true)?;
-            let cipher = Aes256Gcm::new_from_slice(&key)
-                .map_err(|_| anyhow!("The public manifest key is invalid."))?;
-            let compressed=cipher.decrypt(Nonce::from_slice(&iv[..12]),encrypted.as_slice()).map_err(|_|anyhow!("The public model manifest could not be authenticated. The previous snapshot is preserved."))?;
-            let mut decoded = Vec::new();
-            GzDecoder::new(compressed.as_slice())
-                .take(64 * 1024 * 1024 + 1)
-                .read_to_end(&mut decoded)?;
-            if decoded.len() > 64 * 1024 * 1024 {
-                bail!("The public model manifest exceeds its size limit.");
+            if !s(&manifest, "key").is_empty() {
+                let key = hex::decode(s(&manifest, "key"))
+                    .map_err(|_| anyhow!("The public model data key changed."))?;
+                if key.len() != 32 {
+                    bail!("The public model data key changed.");
+                }
+                let iv = Sha256::digest(&key);
+                let encrypted = remote.bytes(url.as_str(), 64 * 1024 * 1024, 45, true)?;
+                let cipher = Aes256Gcm::new_from_slice(&key)
+                    .map_err(|_| anyhow!("The public manifest key is invalid."))?;
+                let compressed=cipher.decrypt(Nonce::from_slice(&iv[..12]),encrypted.as_slice()).map_err(|_|anyhow!("The public model manifest could not be authenticated. The previous snapshot is preserved."))?;
+                let mut decoded = Vec::new();
+                GzDecoder::new(compressed.as_slice())
+                    .take(64 * 1024 * 1024 + 1)
+                    .read_to_end(&mut decoded)?;
+                if decoded.len() > 64 * 1024 * 1024 {
+                    bail!("The public model manifest exceeds its size limit.");
+                }
+                Ok(serde_json::from_slice::<Value>(&decoded)?)
+            } else {
+                Ok(serde_json::from_str::<Value>(&remote.text(url.as_str())?)?)
             }
-            serde_json::from_slice::<Value>(&decoded)?
-        } else {
-            serde_json::from_str::<Value>(&remote.text(url.as_str())?)?
+        })();
+        match decoded {
+            Ok(mut payload) => {
+                clean(&mut payload);
+                walk(&payload, &mut Vec::new(), &mut collections);
+            }
+            Err(error) => last_error = Some(error),
         }
-    } else {
-        (*models).clone()
-    };
-    if !payload.is_array() {
-        payload = payload["models"].take();
     }
-    clean(&mut payload);
-    let models = array(&payload);
-    if models.is_empty()
-        || models
-            .iter()
-            .any(|m| !m["slug"].is_string() || m.get("intelligenceIndex").is_none())
-    {
-        bail!("The public model data format changed. The previous snapshot is preserved.");
+    collections.sort_by_key(|rows| std::cmp::Reverse(rows.len()));
+    if let Some(mut rows) = collections.into_iter().find(|rows| rows.len() >= 100) {
+        for row in &mut rows {
+            clean(row);
+        }
+        return Ok(rows);
     }
-    Ok(models.to_vec())
+    if let Some(error) = last_error {
+        return Err(error);
+    }
+    bail!(
+        "Automatic source recovery could not find a complete scored model catalog. The previous snapshot is preserved."
+    )
 }
-fn find_detail<'a>(node: &'a Value, slug: &str) -> Option<&'a Value> {
+
+fn find_detail<'a>(node: &'a Value, id: &str) -> Option<&'a Value> {
     match node {
         Value::Object(map) => {
-            if s(node, "slug") == slug
-                && node["id"].is_string()
+            let current = (s(node, "id") == id
+                && node["slug"].is_string()
                 && node.get("intelligenceIndex").is_some()
-                && node.get("intelligenceIndexEvaluations").is_some()
-                && node["creator"].is_object()
-            {
-                return Some(node);
-            }
-            map.values().find_map(|v| find_detail(v, slug))
+                && node["creator"].is_object())
+            .then_some(node);
+            // Detail records can omit costs or token counts. Prefer the richest matching
+            // record over navigation summaries without requiring optional measurements.
+            current
+                .into_iter()
+                .chain(map.values().filter_map(|v| find_detail(v, id)))
+                .max_by_key(|v| v.as_object().map_or(0, |m| m.len()))
         }
-        Value::Array(values) => values.iter().find_map(|v| find_detail(v, slug)),
+        Value::Array(values) => values
+            .iter()
+            .filter_map(|v| find_detail(v, id))
+            .max_by_key(|v| v.as_object().map_or(0, |m| m.len())),
         _ => None,
     }
 }
-fn detail(remote: &Remote, slug: &str) -> Result<Value> {
+
+fn detail(remote: &Remote, slug: &str, id: &str) -> Result<Value> {
     for attempt in 0..3 {
         let url = url::Url::parse(ORIGIN)?.join(&format!("/models/{slug}"))?;
         let records = page(&remote.text(url.as_str())?);
-        if let Some(found) = records.iter().find_map(|v| find_detail(v, slug)) {
+        if let Some(found) = records.iter().find_map(|v| find_detail(v, id)) {
             let mut value = found.clone();
             clean(&mut value);
             return Ok(value);
@@ -201,6 +213,7 @@ fn join(source: &Value, detail: &Value) -> Option<Value> {
             nullish(&[&source[&key], &detail["creator"][&lower]]).clone()
         };
     }
+    model["slug"] = nullish(&[&detail["slug"], &source["slug"]]).clone();
     model["id"] = nullish(&[&model["id"], &detail["id"]]).clone();
     model["name"] = nullish(&[&model["name"], &detail["name"]]).clone();
     model["intelligenceIndexCostTotal"] = json!(
@@ -352,27 +365,51 @@ pub fn sync(store: &Store, remote: &Remote) -> Result<Value> {
         let a = scope.spawn(|| remote.text(&format!("{ORIGIN}/leaderboards/models")));
         let b = scope.spawn(|| remote.text(&format!("{ORIGIN}/models")));
         Ok::<_, anyhow::Error>((
-            a.join().map_err(|_| anyhow!("Source download failed"))??,
-            b.join().map_err(|_| anyhow!("Source download failed"))??,
+            a.join().map_err(|_| anyhow!("Source download failed"))?,
+            b.join().map_err(|_| anyhow!("Source download failed"))?,
         ))
     })?;
+    if pages.0.is_err() && pages.1.is_err() {
+        bail!("Both public model sources are unavailable. The previous snapshot is preserved.");
+    }
+    let pages = (pages.0.unwrap_or_default(), pages.1.unwrap_or_default());
     let leaderboard = page(&pages.0);
     let listing = page(&pages.1);
     let (source, details) = thread::scope(|scope| {
         let a = scope.spawn(|| page_models(remote, &leaderboard));
         let b = scope.spawn(|| page_models(remote, &listing));
-        Ok::<_, anyhow::Error>((
-            a.join().map_err(|_| anyhow!("Source manifest failed"))??,
-            b.join().map_err(|_| anyhow!("Source manifest failed"))??,
-        ))
-    })?;
-    if source.len() < 100 {
-        bail!("The public page format changed. The previous snapshot is preserved.");
-    }
-    let candidates: Vec<_> = source.into_iter().filter(eligible_source).collect();
+        (
+            a.join()
+                .unwrap_or_else(|_| Err(anyhow!("Source manifest failed"))),
+            b.join()
+                .unwrap_or_else(|_| Err(anyhow!("Source manifest failed"))),
+        )
+    });
+    // Either complete public catalog can recover the other. Never use a partial chart subset.
+    let (source, details) = match (source, details) {
+        (Ok(source), Ok(details)) => (source, details),
+        (Ok(source), Err(_)) => (source.clone(), source),
+        (Err(_), Ok(details)) => (details.clone(), details),
+        (Err(a), Err(b)) => bail!(
+            "Automatic source recovery failed ({a}; {b}). The previous snapshot is preserved."
+        ),
+    };
     let details: HashMap<_, _> = details
         .into_iter()
-        .map(|v| (s(&v, "slug").to_string(), v))
+        .map(|v| (s(&v, "id").to_string(), v))
+        .collect();
+    let candidates: Vec<_> = source
+        .into_iter()
+        .filter(eligible_source)
+        .map(|mut source| {
+            // A release slug identifies a family, not a reasoning variant. Join stable IDs first.
+            if let Some(detail) = details.get(s(&source, "id")) {
+                if !detail["slug"].is_null() {
+                    source["slug"] = detail["slug"].clone();
+                }
+            }
+            source
+        })
         .collect();
     let mut raw = Vec::new();
     for batch in candidates.chunks(6) {
@@ -383,7 +420,7 @@ pub fn sync(store: &Store, remote: &Remote) -> Result<Value> {
                     let details = &details;
                     scope.spawn(move || -> Result<Option<Value>> {
                         let mut d = details
-                            .get(s(source, "slug"))
+                            .get(s(source, "id"))
                             .cloned()
                             .unwrap_or(Value::Null);
                         let needs = !source["id"].is_string()
@@ -405,7 +442,11 @@ pub fn sync(store: &Store, remote: &Remote) -> Result<Value> {
                             || size
                             || changed(source, &d)
                         {
-                            d = detail(remote, s(source, "slug"))?;
+                            let slug = if s(source, "slug").is_empty() {
+                                text(source, &["release", "slug"])
+                            } else { s(source, "slug") };
+                            if slug.is_empty() { bail!("A scored model has no public detail address. The previous snapshot is preserved."); }
+                            d = detail(remote, slug, s(source, "id"))?;
                         }
                         Ok(join(source, &d))
                     })
@@ -520,7 +561,7 @@ pub fn sync(store: &Store, remote: &Remote) -> Result<Value> {
     let version = version_pattern
         .captures(&pages.1)
         .map(|c| c[1].to_string())
-        .unwrap_or_else(|| "4.1.1".into());
+        .unwrap_or_else(|| s(&previous, "indexVersion").to_string());
     let mut default_ids: Vec<_> = defaults.iter().map(|m| s(m, "id").to_string()).collect();
     let selected: HashSet<_> = default_ids.iter().cloned().collect();
     default_ids.extend(

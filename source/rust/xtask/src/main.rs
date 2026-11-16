@@ -21,9 +21,15 @@ fn run(program: &str, args: &[&str], root: &Path) -> Result<()> {
             flags.extend(["-C".to_string(), "target-feature=+crt-static".to_string()]);
         }
         if let Some(profile) = env::var_os("USERPROFILE") {
-            flags.push(format!("--remap-path-prefix={}=/build/user", PathBuf::from(profile).display()));
+            flags.push(format!(
+                "--remap-path-prefix={}=/build/user",
+                PathBuf::from(profile).display()
+            ));
         }
-        flags.push(format!("--remap-path-prefix={}=/build/intelligence-index", root.display()));
+        flags.push(format!(
+            "--remap-path-prefix={}=/build/intelligence-index",
+            root.display()
+        ));
         command.env("CARGO_ENCODED_RUSTFLAGS", flags.join("\u{1f}"));
     }
     let status = command.status()?;
