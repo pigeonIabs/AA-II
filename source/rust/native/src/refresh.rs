@@ -194,6 +194,41 @@ fn changed(source: &Value, detail: &Value) -> bool {
                 != detail.get("intelligenceIndexIsEstimated")
             || source["id"].is_string() && source["id"] != detail["id"])
 }
+// Preserve the 500-answer-token metric when AA publishes its components instead
+// of a precomputed total. First-answer latency already includes reasoning time.
+fn response_time(model: &Value) -> Option<(f64, &'static str)> {
+    for path in [
+        vec!["endToEndTime"],
+        vec!["medianEndToEndResponseTimeSeconds"],
+        vec!["endToEndResponseTime", "total"],
+        vec![
+            "performanceByPromptType",
+            "long",
+            "medianEndToEndResponseTime",
+        ],
+    ] {
+        if let Some(value) = num(model, &path).filter(|v| *v >= 0.) {
+            return Some((value, "published-total"));
+        }
+    }
+    for measurements in [model, &model["headline"]] {
+        let speed = n(measurements, "outputSpeed").filter(|v| *v > 0.);
+        let latency = n(measurements, "timeToFirstAnswerToken")
+            .or_else(|| {
+                (!b(model, "isReasoning"))
+                    .then(|| n(measurements, "timeToFirstToken"))
+                    .flatten()
+            })
+            .filter(|v| *v >= 0.);
+        if let (Some(speed), Some(latency)) = (speed, latency) {
+            let seconds = latency + 500. / speed;
+            if seconds.is_finite() {
+                return Some((seconds, "first-answer-latency-plus-500-tokens"));
+            }
+        }
+    }
+    None
+}
 fn join(source: &Value, detail: &Value) -> Option<Value> {
     if !eligible_source(source) || !detail.is_null() && !eligible_source(detail) {
         return None;
@@ -227,16 +262,9 @@ fn join(source: &Value, detail: &Value) -> Option<Value> {
     if model["intelligenceIndexTokenCounts"].is_null() {
         model["intelligenceIndexTokenCounts"] = json!({"inputTokens":num(detail,&["canonicalIntelligenceIndexTokenCount","input"]),"outputTokens":num(detail,&["canonicalIntelligenceIndexTokenCount","output"]),"reasoningTokens":num(detail,&["canonicalIntelligenceIndexTokenCount","reasoning"]),"answerTokens":num(detail,&["canonicalIntelligenceIndexTokenCount","answer"])});
     }
-    model["medianEndToEndResponseTimeSeconds"] = json!(
-        nullish(&[
-            &model["endToEndTime"],
-            &model["medianEndToEndResponseTimeSeconds"],
-            &detail["endToEndResponseTime"]["total"],
-            &detail["performanceByPromptType"]["long"]["medianEndToEndResponseTime"]
-        ])
-        .as_f64()
-        .filter(|v| v.is_finite())
-    );
+    let timing = response_time(&model);
+    model["medianEndToEndResponseTimeSeconds"] = json!(timing.map(|v| v.0));
+    model["responseTimeBasis"] = json!(timing.map(|v| v.1));
     model["totalParameters"] = json!(
         nullish(&[&model["totalParameters"], &detail["parameters"]])
             .as_f64()
@@ -329,6 +357,7 @@ fn model(raw: &Value, catalog: &Value, detail: &Value) -> Value {
     ] {
         result[output] = raw[input].clone();
     }
+    result["responseTimeBasis"] = raw["responseTimeBasis"].clone();
     result["licenseCategory"] = detail
         .get("openSourceCategorization")
         .filter(|v| !v.is_null())
@@ -522,6 +551,11 @@ pub fn sync(store: &Store, remote: &Remote) -> Result<Value> {
     if complete.len() < 10 {
         bail!("The public data is missing comparison fields. The previous snapshot is preserved.");
     }
+    if !models.iter().any(|m| n(m, "time").is_some()) {
+        bail!(
+            "The public source did not provide usable response times after automatic recovery. The previous snapshot is preserved."
+        );
+    }
     let logos: HashSet<_> = raw
         .iter()
         .filter_map(|m| m["modelCreatorLogo"].as_str())
@@ -572,7 +606,7 @@ pub fn sync(store: &Store, remote: &Remote) -> Result<Value> {
     );
     let mut seen = HashSet::new();
     default_ids.retain(|id| seen.insert(id.clone()));
-    let snapshot = json!({"updatedAt":now(),"indexVersion":version,"dataPolicy":POLICY,"sourceUrl":format!("{ORIGIN}/leaderboards/models"),"chartSourceUrl":format!("{ORIGIN}/models"),"sourceDescription":"Full precision Artificial Analysis results with separately calculated contributor pricing variants","responseTimeDescription":"End-to-end response time from the public leaderboard for a 500-token answer","defaultModelIds":default_ids,"normalization":{"cost":complete.iter().filter_map(|m|n(m,"cost")).fold(0_f64,f64::max),"tokens":complete.iter().filter_map(|m|n(m,"tokens")).fold(0_f64,f64::max)},"models":models});
+    let snapshot = json!({"updatedAt":now(),"indexVersion":version,"dataPolicy":POLICY,"sourceUrl":format!("{ORIGIN}/leaderboards/models"),"chartSourceUrl":format!("{ORIGIN}/models"),"sourceDescription":"Full precision Artificial Analysis results with separately calculated contributor pricing variants","responseTimeDescription":"Seconds for a 500-token answer, using a published total or published first-answer latency plus 500 divided by output tokens per second. First-answer latency includes reasoning time.","defaultModelIds":default_ids,"normalization":{"cost":complete.iter().filter_map(|m|n(m,"cost")).fold(0_f64,f64::max),"tokens":complete.iter().filter_map(|m|n(m,"tokens")).fold(0_f64,f64::max)},"models":models});
     let parameter_metadata = parameter_metadata(&models);
     let export = json!({"updatedAt":snapshot["updatedAt"],"dataPolicy":POLICY,"models":raw,"defaults":defaults,"catalog":catalog,"parameterMetadata":parameter_metadata,"pricingVariants":variants});
     let result = json!({"modelCount":models.len(),"completeCount":complete.len(),"updatedAt":snapshot["updatedAt"],"missingLogos":missing});
